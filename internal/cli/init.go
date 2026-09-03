@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +17,22 @@ var initCmd = &cobra.Command{
 		return runInit()
 	},
 }
+
+func init() {
+	initCmd.Flags().StringVar(&agentFlag, "agent", "", "agente que vai trabalhar no projeto (opencode, claude, cursor, copilot, junie, windsurf, cline)")
+}
+
+var agentNames = []string{
+	"opencode",
+	"claude",
+	"cursor",
+	"copilot",
+	"junie",
+	"windsurf",
+	"cline",
+}
+
+var agentFlag string
 
 func runInit() error {
 	dirs := []string{
@@ -30,22 +48,13 @@ func runInit() error {
 		}
 	}
 
-	config := `[project]
-name = "my-project"
-description = "Projeto exemplo"
+	agent, err := resolveAgent()
+	if err != nil {
+		return err
+	}
 
-[agents]
-cursor = true
-copilot = true
-claude = true
-opencode = true
-junie = false
-windsurf = false
-cline = false
-`
-
-	if err := os.WriteFile(filepath.Join(".hot", "config.toml"), []byte(config), 0644); err != nil {
-		return fmt.Errorf("erro ao criar config: %w", err)
+	if err := writeConfig(".hot", agent); err != nil {
+		return err
 	}
 
 	project := `# PROJECT.md
@@ -109,8 +118,62 @@ _O que costuma apanhar quem trabalha neste projeto._
 	fmt.Println("  Diretório: .hot/")
 	fmt.Println("  Config: .hot/config.toml")
 	fmt.Println("  Contexto: .hot/PROJECT.md (preenche para o agent não alucinar)")
+	fmt.Printf("  Agente:   %s\n", agent)
 	if skillsCopied > 0 {
 		fmt.Printf("  Skills: %d copiada(s) para .hot/skills/\n", skillsCopied)
 	}
 	return nil
+}
+
+// resolveAgent determina o agente: usa a flag --agent se fornecida, caso
+// contrário pergunta ao utilizador interativamente.
+func resolveAgent() (string, error) {
+	if agentFlag != "" {
+		if !isValidAgent(agentFlag) {
+			return "", fmt.Errorf("agente inválido: %s (válidos: %s)", agentFlag, strings.Join(agentNames, ", "))
+		}
+		return agentFlag, nil
+	}
+	return promptAgent()
+}
+
+func isValidAgent(name string) bool {
+	for _, a := range agentNames {
+		if a == name {
+			return true
+		}
+	}
+	return false
+}
+
+// promptAgent pergunta ao utilizador qual agente vai trabalhar no projeto.
+// Retorna o nome do agente escolhido.
+func promptAgent() (string, error) {
+	var agent string
+	prompt := &survey.Select{
+		Message: "Qual agente vais usar neste projeto?",
+		Options: agentNames,
+	}
+	if err := survey.AskOne(prompt, &agent); err != nil {
+		return "", fmt.Errorf("erro ao escolher agente: %w", err)
+	}
+	return agent, nil
+}
+
+// writeConfig gera .hot/config.toml ativando apenas o agente escolhido.
+func writeConfig(hotDir, agent string) error {
+	config := "[project]\n"
+	config += "name = \"my-project\"\n"
+	config += "description = \"Projeto exemplo\"\n"
+	config += "\n"
+	config += "[agents]\n"
+	for _, name := range agentNames {
+		enabled := "false"
+		if name == agent {
+			enabled = "true"
+		}
+		config += fmt.Sprintf("%s = %s\n", name, enabled)
+	}
+
+	return os.WriteFile(filepath.Join(hotDir, "config.toml"), []byte(config), 0644)
 }
