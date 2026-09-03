@@ -80,6 +80,9 @@ func runSync() error {
 
 	fmt.Println(strings.Repeat("-", 40))
 	fmt.Printf("Sincronizado para %d alvo(s) de %d editores configurados\n", generated, len(targets))
+
+	syncSkills(cfg)
+
 	return nil
 }
 
@@ -107,6 +110,33 @@ func targetsFor(cfg rules.Config) []syncTarget {
 	appendIf(cfg.Agents.Cline, syncTarget{".clinerules", "", "markdown"})
 
 	return targets
+}
+
+// skillTargets maps each enabled agent to the directory where it discovers skills.
+func skillTargets(cfg rules.Config) []string {
+	var targets []string
+	add := func(enabled bool, dir string) {
+		if enabled {
+			targets = append(targets, dir)
+		}
+	}
+	add(cfg.Agents.OpenCode, ".opencode/skills")
+	add(cfg.Agents.Claude, ".claude/skills")
+	add(cfg.Agents.Claude, ".agents/skills")
+	return targets
+}
+
+func syncSkills(cfg rules.Config) {
+	for _, dir := range skillTargets(cfg) {
+		n, err := copyLocalSkills(".hot/skills", dir)
+		if err != nil {
+			color.Red("✗ Erro ao copiar skills para %s: %v", dir, err)
+			continue
+		}
+		if n > 0 {
+			color.Green("✓ %-20s %d skill(s) sincronizada(s)", dir, n)
+		}
+	}
 }
 
 func dirOf(path string) string {
