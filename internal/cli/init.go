@@ -42,11 +42,6 @@ opencode = true
 junie = false
 windsurf = false
 cline = false
-
-[[skills]]
-name = "example"
-path = "./skills/example"
-description = "Skill de exemplo"
 `
 
 	if err := os.WriteFile(filepath.Join(".hot", "config.toml"), []byte(config), 0644); err != nil {
@@ -105,9 +100,17 @@ _O que costuma apanhar quem trabalha neste projeto._
 		return fmt.Errorf("erro ao criar PROJECT.md: %w", err)
 	}
 
+	skillsCopied, err := copyEmbeddedSkills(filepath.Join(".hot", "skills"))
+	if err != nil {
+		return fmt.Errorf("erro ao copiar skills: %w", err)
+	}
+
 	fmt.Println("✓ Projeto HotStack inicializado!")
 	fmt.Println("  Diretório: .hot/")
 	fmt.Println("  Config: .hot/config.toml")
 	fmt.Println("  Contexto: .hot/PROJECT.md (preenche para o agent não alucinar)")
+	if skillsCopied > 0 {
+		fmt.Printf("  Skills: %d copiada(s) para .hot/skills/\n", skillsCopied)
+	}
 	return nil
 }
