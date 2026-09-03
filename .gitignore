@@ -1,0 +1,30 @@
+# Binários
+hotstack.exe
+hotstack
+hotstack-*
+*.exe
+
+# Go
+*.test
+*.out
+
+# HotStack gerado
+AGENTS.md
+CLAUDE.md
+.cursorrules
+.cursor/
+.github/copilot-instructions.md
+.junie/
+.windsurfrules
+.clinerules
+
+# .hot é o diretório de regras/skills do projeto (manter versionado)
+# mas não as pastas geradas por sync dentro de agentes
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/

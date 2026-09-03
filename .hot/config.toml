@@ -1,0 +1,17 @@
+[project]
+name = "my-project"
+description = "Projeto exemplo"
+
+[agents]
+cursor = true
+copilot = true
+claude = true
+opencode = true
+junie = false
+windsurf = false
+cline = false
+
+[[skills]]
+name = "example"
+path = "./skills/example"
+description = "Skill de exemplo"
