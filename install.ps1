@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$Repo = "abraa/hotstack"
+$Repo = "abraaosala/hotstack"
 $InstallDir = if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\HotStack" } else { "$env:USERPROFILE\.hotstack\bin" }
 
 Write-Host "HotStack - Instalador" -ForegroundColor Cyan

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="abraa/hotstack"
+REPO="abraaosala/hotstack"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
 detect_platform() {
