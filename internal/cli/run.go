@@ -27,7 +27,7 @@ func init() {
 }
 
 func runSkill(name string) error {
-	skill, err := skills.LoadOne(".hot/skills", name)
+	skill, err := findSkill(name)
 	if err != nil {
 		return err
 	}

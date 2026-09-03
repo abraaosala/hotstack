@@ -2,9 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/abraa/hotstack/internal/skills"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -18,19 +16,15 @@ var listCmd = &cobra.Command{
 }
 
 func runList() error {
-	skillsDir := ".hot/skills"
-
-	if _, err := os.Stat(skillsDir); os.IsNotExist(err) {
-		return fmt.Errorf("diretório de skills não encontrado: %s", skillsDir)
-	}
-
-	all, err := skills.Load(skillsDir)
+	all, err := listSkills()
 	if err != nil {
 		return err
 	}
 
 	if len(all) == 0 {
 		color.Yellow("Nenhuma skill encontrada")
+		color.Yellow("  Coloca skills em %s", localSkillsDir)
+		color.Yellow("  ou em %s (ou define HOTSTACK_HOME)", globalSkillsDir())
 		return nil
 	}
 
