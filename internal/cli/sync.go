@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/abraa/hotstack/internal/rules"
+	"github.com/abraaosala/hotstack/internal/rules"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )

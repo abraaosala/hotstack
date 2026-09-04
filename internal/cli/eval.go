@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/abraa/hotstack/internal/evals"
+	"github.com/abraaosala/hotstack/internal/evals"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )

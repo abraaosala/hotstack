@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/abraa/hotstack/internal/rules"
+	"github.com/abraaosala/hotstack/internal/rules"
 )
 
 func TestCopyLocalSkills(t *testing.T) {

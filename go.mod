@@ -1,4 +1,4 @@
-module github.com/abraa/hotstack
+module github.com/abraaosala/hotstack
 
 go 1.27.1
 

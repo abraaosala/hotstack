@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/abraa/hotstack/internal/cli"
+	"github.com/abraaosala/hotstack/internal/cli"
 )
 
 func main() {

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	releaseURL = "https://github.com/abraa/hotstack/releases/latest/download"
+	releaseURL = "https://github.com/abraaosala/hotstack/releases/latest/download"
 )
 
 var updateCmd = &cobra.Command{

@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/abraa/hotstack/internal/skills"
+	"github.com/abraaosala/hotstack/internal/skills"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )

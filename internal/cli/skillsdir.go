@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/abraa/hotstack/internal/skills"
+	"github.com/abraaosala/hotstack/internal/skills"
 )
 
 const localSkillsDir = ".hot/skills"

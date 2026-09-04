@@ -49,7 +49,7 @@ changelog:
 
 release:
   github:
-    owner: abraa
+    owner: abraaosala
     name: hotstack
   draft: false
   prerelease: auto
