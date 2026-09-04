@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -38,6 +40,12 @@ func (g Grader) Evaluate(ctx *EvalContext) (passed bool, message string) {
 		return !ok, msg
 	case "exit_code":
 		return g.evalExitCode(ctx)
+	case "output_contains":
+		return g.evalOutputContains(ctx)
+	case "command_exists":
+		return g.evalCommandExists(ctx)
+	case "snapshot":
+		return g.evalSnapshot(ctx)
 	default:
 		return false, "grader desconhecido: " + g.Type
 	}
@@ -135,9 +143,6 @@ func (g Grader) evalFileExists(ctx *EvalContext) (bool, string) {
 	path := filepath.Join(ctx.Dir, g.Path)
 	_, err := os.Stat(path)
 	exists := err == nil
-	if !exists {
-		os.Stat(path)
-	}
 	base := filepath.Base(path)
 	if !exists {
 		return false, base + " não existe"
@@ -145,9 +150,120 @@ func (g Grader) evalFileExists(ctx *EvalContext) (bool, string) {
 	return true, ""
 }
 
+func (g Grader) evalOutputContains(ctx *EvalContext) (bool, string) {
+	output := ctx.Log.String()
+
+	if g.Pattern != "" {
+		re, rerr := regexp.Compile(g.Pattern)
+		if rerr == nil {
+			matched := re.MatchString(output)
+			switch g.Match {
+			case "not_contains":
+				return !matched, "padrão " + g.Pattern + " encontrado no output (não devia)"
+			default:
+				return matched, "padrão não encontrado no output: " + g.Pattern
+			}
+		}
+
+		contains := strings.Contains(output, g.Pattern)
+		switch g.Match {
+		case "not_contains":
+			return !contains, "padrão " + g.Pattern + " encontrado no output (não devia)"
+		default:
+			return contains, "padrão não encontrado no output: " + g.Pattern
+		}
+	}
+
+	if g.Output != "" {
+		contains := strings.Contains(output, g.Output)
+		switch g.Match {
+		case "not_contains":
+			return !contains, "output contém " + g.Output + " (não devia)"
+		default:
+			return contains, "output não contém: " + g.Output
+		}
+	}
+
+	return true, ""
+}
+
+func (g Grader) evalCommandExists(ctx *EvalContext) (bool, string) {
+	if g.Command == "" {
+		return false, "comando não especificado para command_exists"
+	}
+
+	_, err := exec.LookPath(g.Command)
+	if err != nil {
+		return false, "comando " + g.Command + " não encontrado no PATH"
+	}
+
+	return true, ""
+}
+
+func (g Grader) evalSnapshot(ctx *EvalContext) (bool, string) {
+	if g.Snapshot == "" {
+		return false, "snapshot path não especificado"
+	}
+
+	snapshotPath := filepath.Join(ctx.Dir, g.Snapshot)
+	currentOutput := ctx.Log.String()
+
+	// Se o snapshot não existe, criar com o output atual
+	if _, err := os.Stat(snapshotPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(filepath.Dir(snapshotPath), 0755); err != nil {
+			return false, "erro ao criar diretório do snapshot: " + err.Error()
+		}
+		if err := os.WriteFile(snapshotPath, []byte(currentOutput), 0644); err != nil {
+			return false, "erro ao criar snapshot: " + err.Error()
+		}
+		return true, "snapshot criado: " + g.Snapshot
+	}
+
+	// Ler snapshot existente
+	snapshotContent, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		return false, "erro ao ler snapshot: " + err.Error()
+	}
+
+	if string(snapshotContent) == currentOutput {
+		return true, ""
+	}
+
+	return false, "output difere do snapshot " + g.Snapshot
+}
+
 func (g Grader) evalExitCode(ctx *EvalContext) (bool, string) {
-	cmd := exec.Command("sh", "-c", "echo $? ")
-	_ = cmd
+	if g.Command == "" {
+		return false, "comando não especificado para exit_code"
+	}
+
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", g.Command)
+	} else {
+		cmd = exec.Command("sh", "-c", g.Command)
+	}
+	cmd.Dir = ctx.Dir
+	cmd.Env = ctx.Env
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+
+	err := cmd.Run()
+	exitCode := 0
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			return false, "erro ao executar comando: " + err.Error()
+		}
+	}
+
+	if exitCode != g.Code {
+		return false, "exit code " + strconv.Itoa(exitCode) + ", esperado " + strconv.Itoa(g.Code)
+	}
+
 	return true, ""
 }
 

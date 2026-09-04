@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+  publish-npm:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Download Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Publish platform packages
+        shell: bash
+        run: |
+          for platform in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64; do
+            pkg="hotstack-${platform}"
+            pkg_dir="npm/${pkg}"
+            mkdir -p "${pkg_dir}/bin"
+            
+            # Copiar binário
+            binary="dist/hotstack_${platform}/hotstack"
+            if [[ "$platform" == *"windows"* ]]; then
+              binary="${binary}.exe"
+            fi
+            
+            if [ -f "$binary" ]; then
+              cp "$binary" "${pkg_dir}/bin/"
+              
+              # Criar package.json
+              cat > "${pkg_dir}/package.json" << EOF
+          {
+            "name": "${pkg}",
+            "version": "${{ steps.version.outputs.VERSION }}",
+            "description": "HotStack for ${platform}",
+            "os": ["$(echo $platform | cut -d'-' -f1)"],
+            "cpu": ["$(echo $platform | cut -d'-' -f2)"],
+            "files": ["bin/"],
+            "bin": {
+              "hotstack": "bin/hotstack$([[ $platform == *windows* ]] && echo '.exe')"
+            }
+          }
+          EOF
+              
+              cd "${pkg_dir}"
+              npm publish --access public
+              cd -
+            fi
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish main package
+        shell: bash
+        run: |
+          cd npm/hotstack
+          
+          # Atualizar versão
+          jq --arg v "${{ steps.version.outputs.VERSION }}" '.version = $v' package.json > temp.json && mv temp.json package.json
+          
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

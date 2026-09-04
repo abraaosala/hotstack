@@ -1,0 +1,39 @@
+{
+  "name": "hotstack",
+  "version": "0.5.0",
+  "description": "Framework de skills para coding agents - unifica regras AI, executa skills e segue o padrão Agent Skills",
+  "main": "src/index.js",
+  "bin": {
+    "hotstack": "src/index.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js",
+    "preuninstall": "node uninstall.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abraa/hotstack.git"
+  },
+  "keywords": [
+    "coding-agent",
+    "skills",
+    "ai",
+    "cursor",
+    "claude",
+    "copilot",
+    "hotstack"
+  ],
+  "author": "abraa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/abraa/hotstack/issues"
+  },
+  "homepage": "https://github.com/abraa/hotstack#readme",
+  "optionalDependencies": {
+    "hotstack-darwin-arm64": "0.5.0",
+    "hotstack-darwin-amd64": "0.5.0",
+    "hotstack-linux-arm64": "0.5.0",
+    "hotstack-linux-amd64": "0.5.0",
+    "hotstack-windows-amd64": "0.5.0"
+  }
+}

@@ -18,6 +18,9 @@ type Grader struct {
 	Min        int    `toml:"min"`
 	Max        int    `toml:"max"`
 	Code       int    `toml:"code"`
+	Command    string `toml:"command"`
+	Output     string `toml:"output"`
+	Snapshot   string `toml:"snapshot"`
 }
 
 type Result struct {

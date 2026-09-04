@@ -4,6 +4,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "hotstack",
 	Short: "Framework de skills para coding agents",
