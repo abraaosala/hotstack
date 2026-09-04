@@ -4,6 +4,12 @@ Framework de skills para coding agents. Unifica regras AI (estilo Pair), executa
 
 ## Instalação
 
+### npm (recomendado)
+
+```bash
+npm install -g hotstack
+```
+
 ### macOS / Linux
 
 ```bash
@@ -32,6 +38,8 @@ hotstack list          # lista skills
 hotstack run <skill>   # executa uma skill
 hotstack run <skill> --script report.sh   # executa um script bundlado
 hotstack eval <skill>  # valida uma skill com evals
+hotstack update        # atualiza para a versão mais recente
+hotstack update --check # apenas verificar se há atualização
 ```
 
 ## Estrutura
@@ -59,7 +67,8 @@ hotstack eval <skill>  # valida uma skill com evals
 | `sync` | Gera contexto para Cursor, Copilot, Claude, OpenCode, Junie, Windsurf, Cline |
 | `list` | Lista skills com metadata |
 | `run` | Executa skill (via agent) ou script bundlado |
-| `eval` | Valida skill com graders (tool_used, file_content, git_dirty, file_exists…) |
+| `eval` | Valida skill com graders |
+| `update` | Atualiza para a versão mais recente |
 
 ## Evals
 
@@ -78,8 +87,31 @@ pattern = "func quadrado"
 [[graders]]
 type = "git_dirty"
 min = 1
+
+[[graders]]
+type = "exit_code"
+command = "go build ./..."
+code = 0
+
+[[graders]]
+type = "output_contains"
+pattern = "build successful"
 +++
 ```
+
+### Tipos de Grader
+
+| Grader | Descrição |
+|--------|-----------|
+| `tool_used` | Verifica se uma tool (bash, etc.) foi usada |
+| `file_content` | Verifica se ficheiro contém padrão (regex ou string) |
+| `file_exists` | Verifica se ficheiro existe |
+| `file_not_exists` | Verifica se ficheiro NÃO existe |
+| `git_dirty` | Verifica mudanças no working tree (min/max) |
+| `exit_code` | Verifica exit code de comando |
+| `output_contains` | Verifica padrão no output |
+| `command_exists` | Verifica se comando existe no PATH |
+| `snapshot` | Testes de snapshot (cria/compara) |
 
 ## Agentes suportados
 
