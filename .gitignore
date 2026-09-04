@@ -21,8 +21,8 @@ CLAUDE.md
 .claude/skills/
 .agents/skills/
 
-# .hot é o diretório de regras/skills do projeto (manter versionado)
-# mas não as pastas geradas por sync dentro de agentes
+# HotStack local
+.hot/
 
 # OS
 .DS_Store
